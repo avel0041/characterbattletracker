@@ -6,7 +6,7 @@ from data_manager import DataManager
 def main():
     st.set_page_config(page_title="Character Match Statistics", layout="wide")
 
-    st.title("Character Match Statistics Tracker")
+    st.title("Character Match Statistics Tracker") 
 
     # Initialize data manager
     dm = DataManager()
@@ -20,17 +20,25 @@ def main():
     # Team 1 selection
     st.sidebar.subheader("Team 1")
     team1 = []
-    team1.append(st.sidebar.selectbox("Player 1 (Team 1)", dm.characters, key="t1p1"))
+    p1 = []
+    team1.append(st.sidebar.selectbox("Персонаж 1", dm.characters, key="t1p1"))
+    p1.append(st.sidebar.selectbox("Игрок 1", dm.players, key="p1p1"))
     if match_type == "2v2":
-        team1.append(st.sidebar.selectbox("Player 2 (Team 1)", dm.characters, key="t1p2"))
+        team1.append(st.sidebar.selectbox("Персонаж 2", dm.characters, key="t1p2"))
+        p1.append(st.sidebar.selectbox("Игрок 2", dm.players, key="p1p2"))
+        
 
     # Team 2 selection
     st.sidebar.subheader("Team 2")
     team2 = []
-    team2.append(st.sidebar.selectbox("Player 1 (Team 2)", dm.characters, key="t2p1"))
+    p2 = []
+    team2.append(st.sidebar.selectbox("Персонаж 1", dm.characters, key="t2p1"))
+    p2.append(st.sidebar.selectbox("Игрок 1", dm.players, key="p2p1"))
     if match_type == "2v2":
-        team2.append(st.sidebar.selectbox("Player 2 (Team 2)", dm.characters, key="t2p2"))
-
+        team2.append(st.sidebar.selectbox("Персонаж 2", dm.characters, key="t2p2"))
+        p2.append(st.sidebar.selectbox("Игрок 2", dm.players, key="p2p2"))
+        
+    st.sidebar.subheader("Score")
     # Score input
     score1 = st.sidebar.number_input("Team 1 Score", min_value=0, value=0, key="score1")
     score2 = st.sidebar.number_input("Team 2 Score", min_value=0, value=0, key="score2")
@@ -41,7 +49,7 @@ def main():
             if score1 == score2:
                 st.sidebar.error("Scores cannot be equal!")
             else:
-                success = dm.add_match(team1, team2, score1, score2)
+                success = dm.add_match(team1, team2, score1, score2, p1, p2)
                 if success:
                     st.sidebar.success("Match result added successfully!")
                 else:
@@ -50,7 +58,9 @@ def main():
             st.sidebar.error("Invalid team composition!")
 
     # Main content area - using tabs for better organization
-    tab1, tab2, tab3, tab4 = st.tabs(["Character Statistics", "Win Rate Trends", "Matchup Matrix", "Match History"])
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["Character Statistics", 
+                                            "Win Rate Trends", "Winrate Matrix", "Match History", 
+                                            "Matchup Matrix", "Player Stats"])
 
     # Add match type filter in the main area
     stats_match_type = st.radio(
@@ -130,32 +140,32 @@ def main():
             st.info("No match data available yet!")
 
     with tab3:
-        st.header("Character Matchup Matrix")
+        st.header("Character Winrate Matrix")
         matchup_matrix = dm.get_matchup_matrix(match_type=filter_type)
 
         # Convert to percentage
-        matchup_matrix = matchup_matrix * 100
+        # matchup_matrix = matchup_matrix * 100
 
         # Display the heatmap
         st.write("Win rates (%) for row character vs column character")
 
         # Format the matrix for display
         formatted_matrix = matchup_matrix.copy()
-        formatted_matrix = formatted_matrix.round(1)
+        # formatted_matrix = formatted_matrix.round(1)
 
         # Create a color-coded display using custom HTML
         def color_scale(val):
             # Create a color scale from red (0%) to green (100%)
-            if pd.isna(val):
-                return 'background-color: #f0f0f0'
+            if val == '':
+                return 'background-color: #101414'
+            val = float(val.split('%')[0])
             normalized = val / 100
             red = int(255 * (1 - normalized))
             green = int(255 * normalized)
             return f'background-color: rgb({red}, {green}, 0); color: white'
 
         st.dataframe(
-            formatted_matrix.style.applymap(color_scale)
-            .format("{:.1f}%")
+            formatted_matrix.style.map(color_scale)
             .set_properties(**{
                 'text-align': 'center',
                 'width': '100%'
@@ -175,12 +185,122 @@ def main():
                 lambda x: f"{x['team1']} vs {x['team2']} ({x['score1']}-{x['score2']})",
                 axis=1
             )
+            history['players_team1'] = history.apply(
+                lambda x: f"{str(str(x['p1']).split('!')[0])} и {str(str(x['p1']).split('!')[-1])}",
+                axis=1
+            )
+            history['players_team2'] = history.apply(
+                lambda x: f"{str(str(x['p2']).split('!')[0])} и {str(str(x['p2']).split('!')[-1])}",
+                axis=1
+            )
             st.dataframe(
-                history[['result', 'timestamp']].sort_values('timestamp', ascending=False),
+                history[['result', 'players_team1', 'players_team2', 'timestamp']].sort_values('timestamp', ascending=False),
                 use_container_width=True
             )
         else:
             st.info("No matches recorded yet!")
+
+    with tab5:
+        st.header("Character Matchup Matrix")
+        matchup_matrix = dm.get_score_matrix(match_type=filter_type)
+
+        # Display the heatmap
+        st.write("Score rate (%) for row character vs column character")
+
+        # Format the matrix for display
+        formatted_matrix = matchup_matrix.copy()
+        # formatted_matrix = formatted_matrix.round(1)
+
+        # Create a color-coded display using custom HTML
+        def color_scale(val):
+            # Create a color scale from red (0%) to green (100%)
+            if val == '':
+                return 'background-color: #101414'
+            val = float(val.split('%')[0])
+            normalized = val / 100
+            red = int(255 * (1 - normalized))
+            green = int(255 * normalized)
+            return f'background-color: rgb({red}, {green}, 0); color: white'
+
+        st.dataframe(
+            formatted_matrix.style.map(color_scale)
+            .set_properties(**{
+                'text-align': 'center',
+                'width': '100%'
+            }),
+            use_container_width=True,
+            height=800
+        )
+
+        st.info("💡 Reading the matrix: Each cell shows the score rate (%) of the row character against the column character. " 
+                "Green indicates a favorable matchup, red indicates an unfavorable one.")
+        
+    with tab6:
+        tab6_1, tab6_2, tab6_3 = st.tabs(["Players winrate", "Players winrate by character", "Players winrate matrix"])
+        with tab6_1:
+            st.header("Players winrate")
+            players_winrate = dm.get_players_winrate(match_type=filter_type)
+            players_winrate.columns = ['Total games', 'Wins', 'Win Rate (%)']
+            # Display statistics with styling and full width
+            st.dataframe(
+                players_winrate.style.format({
+                    'Win Rate (%)': '{:.2f}%',
+                    'Total Games': '{:,.0f}',
+                    'Wins': '{:,.0f}'
+                }).set_properties(**{
+                    'text-align': 'center',
+                    'width': '100%'
+                }),
+                use_container_width=True,
+                height=600
+            )
+        with tab6_2:
+            st.header("Players winrate by character")
+            pl = (st.selectbox("Игрок", dm.players, key="p"))
+            players_winrate_by_character = dm.get_players_winrate_by_character(player=pl, match_type=filter_type)
+            # Display statistics with styling and full width
+            players_winrate_by_character.columns = ['Total games', 'Wins', 'Win Rate (%)']
+            st.dataframe(
+                players_winrate_by_character.style.format({
+                    'Win Rate (%)': '{:.2f}%',
+                    'Total Games': '{:,.0f}',
+                    'Wins': '{:,.0f}'
+                }).set_properties(**{
+                    'text-align': 'center',
+                    'width': '100%'
+                }),
+                use_container_width=True,
+                height=600
+            )
+        with tab6_3:
+            st.header("Players winrate matrix")
+            matchup_matrix = dm.get_players_score_matrix(match_type=filter_type)
+            # Format the matrix for display
+            formatted_matrix = matchup_matrix.copy()
+            # formatted_matrix = formatted_matrix.round(1)
+
+            # Create a color-coded display using custom HTML
+            def color_scale(val):
+                # Create a color scale from red (0%) to green (100%)
+                if val == '-':
+                    return 'background-color: #101414'
+                val = float(val.split('%')[0])
+                normalized = val / 100
+                red = int(255 * (1 - normalized))
+                green = int(255 * normalized)
+                return f'background-color: rgb({red}, {green}, 0); color: white'
+
+            st.dataframe(
+                formatted_matrix.style.map(color_scale)
+                .set_properties(**{
+                    'text-align': 'center',
+                    'width': '100%'
+                }),
+                use_container_width=True,
+                height=800
+            )
+
+
 
 if __name__ == "__main__":
     main()
