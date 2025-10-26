@@ -98,7 +98,7 @@ def main():
                 'text-align': 'center',
                 'width': '100%'
             }),
-            use_container_width=True,
+            width='stretch',
             height=600
         )
 
@@ -170,7 +170,7 @@ def main():
                 'text-align': 'center',
                 'width': '100%'
             }),
-            use_container_width=True,
+            width='stretch',
             height=800
         )
 
@@ -195,7 +195,7 @@ def main():
             )
             st.dataframe(
                 history[['result', 'players_team1', 'players_team2', 'timestamp']].sort_values('timestamp', ascending=False),
-                use_container_width=True
+                width='stretch'
             )
         else:
             st.info("No matches recorded yet!")
@@ -228,7 +228,7 @@ def main():
                 'text-align': 'center',
                 'width': '100%'
             }),
-            use_container_width=True,
+            width='stretch',
             height=800
         )
 
@@ -251,7 +251,7 @@ def main():
                     'text-align': 'center',
                     'width': '100%'
                 }),
-                use_container_width=True,
+                width='stretch',
                 height=600
             )
         with tab6_2:
@@ -269,7 +269,7 @@ def main():
                     'text-align': 'center',
                     'width': '100%'
                 }),
-                use_container_width=True,
+                width='stretch',
                 height=600
             )
         with tab6_3:
@@ -296,7 +296,7 @@ def main():
                     'text-align': 'center',
                     'width': '100%'
                 }),
-                use_container_width=True,
+                width='stretch',
                 height=800
             )
 

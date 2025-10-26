@@ -288,6 +288,10 @@ class DataManager:
                 # Определяем результат игры (1 - победа, 0 - поражение или ничья)
                 result = 1 if row['score1'] > row['score2'] else 0
                 character_data.append({'character': character, 'result': result})
+                if team1_players.count(player) > 1:
+                    character = team1_characters[1]
+                    result = 1 if row['score1'] > row['score2'] else 0
+                    character_data.append({'character': character, 'result': result})
             
             # Проверяем, был ли наш игрок в команде 2
             elif player in team2_players:
@@ -298,6 +302,10 @@ class DataManager:
                 # Определяем результат игры (1 - победа, 0 - поражение или ничья)
                 result = 1 if row['score2'] > row['score1'] else 0
                 character_data.append({'character': character, 'result': result})
+                if team2_players.count(player) > 1:
+                    character = team2_characters[1]
+                    result = 1 if row['score2'] > row['score1'] else 0
+                    character_data.append({'character': character, 'result': result})
         
         # Если игрок не найден ни в одной игре
         if not character_data:
