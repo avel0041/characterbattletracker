@@ -9,7 +9,7 @@ def main():
     st.title("Character Match Statistics Tracker") 
 
     # Initialize data manager
-    dm = DataManager()
+    dm = DataManager("C:/INeedThis/UnmatchedDataSync/matches.csv")
 
     # Sidebar for adding new matches
     st.sidebar.header("Add New Match")
